@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         A6 Atalho: SAC - Financeiro (Estável e Funcional)
+// @name         A6 Atalho: SAC - Financeiro - Adriano Casatti
 // @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Botões automáticos no SAC Financeiro com estabilidade
+// @version      1.5
+// @description  Botões rápidos e seguros para SAC-Financeiro no Integrator 6
 // @match        *://integrator6.gegnet.com.br/*
 // @grant        none
 // ==/UserScript==
@@ -10,93 +10,107 @@
 (function () {
     'use strict';
 
-    const delay = ms => new Promise(res => setTimeout(res, ms));
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    async function selecionarTipoPorTexto(texto) {
+    async function selecionarPorTextoSpan(label) {
         await delay(200);
-        const spans = Array.from(document.querySelectorAll('span.ng-star-inserted')).filter(s => s.offsetParent !== null);
-        const alvo = spans.find(s => s.textContent.trim() === texto);
+        const spans = Array.from(document.querySelectorAll('span.ng-star-inserted'))
+            .filter(el => el.offsetParent !== null);
+        const alvo = spans.find(span => span.textContent.trim() === label);
         if (alvo) alvo.click();
     }
 
-    async function selecionarDropdownPorFormControl(name, label) {
-        const trigger = document.querySelector(`p-dropdown[formcontrolname="${name}"] .ui-dropdown-trigger`);
-        if (!trigger) return;
-        trigger.click();
-        await delay(200);
-
-        const opcoes = Array.from(document.querySelectorAll('li[role="option"]'));
-        const opcao = opcoes.find(opt => opt.getAttribute('aria-label')?.trim() === label);
-        if (opcao) opcao.click();
+    async function selecionarDropdown(formcontrolname, label) {
+        const dropdown = document.querySelector(`p-dropdown[formcontrolname="${formcontrolname}"] .ui-dropdown-trigger`);
+        if (!dropdown) return;
+        dropdown.click();
+        await delay(300);
+        const option = Array.from(document.querySelectorAll('li[role="option"], li.ui-dropdown-item'))
+            .find(opt => opt.textContent.trim() === label && opt.offsetParent !== null);
+        if (option) option.click();
     }
 
-    const acoes = {
+    const acoesExtras = {
         pagamentoMensalidade: async () => {
-            await selecionarTipoPorTexto("SAC - FINANCEIRO - BLOQUEIO POR INADIMPLÊNCIA");
-            await selecionarDropdownPorFormControl('codcatoco', 'Administrativo');
-            await selecionarDropdownPorFormControl('codmvis', 'SAC - Financeiro - Informar Pagto Mensalidade');
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - BLOQUEIO POR INADIMPLÊNCIA");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Informar Pagto Mensalidade");
+            await selecionarDropdown("codcatoco", "Administrativo");
         },
         informacoesBoleto: async () => {
-            await selecionarTipoPorTexto("SAC - FINANCEIRO - INFORMAÇÕES SOBRE BOLETO OU NF");
-            await selecionarDropdownPorFormControl('codcatoco', 'Administrativo');
-            await selecionarDropdownPorFormControl('codmvis', 'SAC - Financeiro - Dúvidas ou Informações');
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - INFORMAÇÕES SOBRE BOLETO OU NF");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Dúvidas ou Informações");
+            await selecionarDropdown("codcatoco", "Administrativo");
         },
         habilitacaoProvisoria: async () => {
-            await selecionarTipoPorTexto("SAC - FINANCEIRO - BLOQUEIO POR INADIMPLÊNCIA");
-            await selecionarDropdownPorFormControl('codcatoco', 'Administrativo');
-            await selecionarDropdownPorFormControl('codmvis', 'SAC - Financeiro - Habilitação Provisória');
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - BLOQUEIO POR INADIMPLÊNCIA");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Habilitação Provisória");
+            await selecionarDropdown("codcatoco", "Administrativo");
         },
         centralDoAssinante: async () => {
-            await selecionarTipoPorTexto("SAC - FINANCEIRO - CENTRAL DO ASSINANTE");
-            await selecionarDropdownPorFormControl('codcatoco', 'Administrativo');
-            await selecionarDropdownPorFormControl('codmvis', 'SAC - Financeiro - Central do Assinante');
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - CENTRAL DO ASSINANTE");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Central do Assinante");
+            await selecionarDropdown("codcatoco", "Administrativo");
         }
     };
 
-    function criarBotoes() {
-        if (document.querySelector('#painel-sacf')) return;
+    function criarBotao() {
+        if (document.getElementById('btn-pagto-mensalidade')) return;
 
-        const dropdownCategoria = document.querySelector('p-dropdown[formcontrolname="codcatoco"]');
-        if (!dropdownCategoria) return;
+        const categoriaDropdown = document.querySelector('p-dropdown[formcontrolname="codcatoco"]');
+        if (!categoriaDropdown) return;
 
-        const painel = document.createElement('div');
-        painel.id = 'painel-sacf';
-        painel.style.margin = '10px 0';
+        const container = document.createElement('div');
+        container.style.margin = '10px 0';
 
         const botoes = [
-            { texto: 'PAGTO MENSALIDADE', acao: acoes.pagamentoMensalidade },
-            { texto: 'INF. BOLETO OU NF', acao: acoes.informacoesBoleto },
-            { texto: 'HABILITAÇÃO PROV.', acao: acoes.habilitacaoProvisoria },
-            { texto: 'CENTRAL DO ASSINANTE', acao: acoes.centralDoAssinante }
+            { texto: 'PAGTO MENSALIDADE', acao: acoesExtras.pagamentoMensalidade },
+            { texto: 'INF. BOLETO OU NF', acao: acoesExtras.informacoesBoleto },
+            { texto: 'HABILITAÇÃO PROV.', acao: acoesExtras.habilitacaoProvisoria },
+            { texto: 'CENTRAL DO ASSINANTE', acao: acoesExtras.centralDoAssinante }
         ];
 
-        botoes.forEach(({ texto, acao }) => {
+        for (const { texto, acao } of botoes) {
             const btn = document.createElement('button');
             btn.textContent = texto;
             btn.className = 'btn btn-primary';
             btn.style.margin = '0 8px 8px 0';
-            btn.onclick = acao;
-            painel.appendChild(btn);
-        });
+            btn.style.padding = '4px 10px';
+            btn.id = 'btn-' + texto.toLowerCase().replace(/\s/g, '-');
+            btn.addEventListener('click', acao);
+            container.appendChild(btn);
+        }
 
-        dropdownCategoria.parentElement.prepend(painel);
+        categoriaDropdown.parentElement.prepend(container);
     }
 
-    function aguardarCarregamento() {
-        const interval = setInterval(() => {
-            const categoriaDropdown = document.querySelector('p-dropdown[formcontrolname="codcatoco"]');
-            if (location.href.includes('/novo/atendimento-na') && categoriaDropdown) {
-                clearInterval(interval);
-                criarBotoes();
-            }
-        }, 500);
+    async function aguardarTelaCarregada(tentativas = 10) {
+        for (let i = 0; i < tentativas; i++) {
+            const categoria = document.querySelector('p-dropdown[formcontrolname="codcatoco"]');
+            const motivo = document.querySelector('p-dropdown[formcontrolname="codmvis"]');
+            const tipo = document.querySelector('span.ng-star-inserted');
+            if (categoria && motivo && tipo) return true;
+            await delay(500);
+        }
+        return false;
     }
 
-    // Aciona na primeira carga
-    window.addEventListener('load', aguardarCarregamento);
+    async function init() {
+        if (!window.location.href.includes('/novo/atendimento-na')) return;
 
-    // Aciona a cada mudança de hash (ex: trocar de tela)
-    window.addEventListener('hashchange', () => {
-        setTimeout(aguardarCarregamento, 500);
+        const ok = await aguardarTelaCarregada();
+        if (ok) criarBotao();
+    }
+
+    // Observa mudanças e verifica quando abrir um novo atendimento
+    const observer = new MutationObserver(() => {
+        init();
     });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Também roda quando muda a URL
+    window.addEventListener('hashchange', () => {
+        setTimeout(init, 800);
+    });
+
 })();
