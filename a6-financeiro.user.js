@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         A6 Atalho: SAC - Financeiro - Adriano Casatti
+// @name         A6 Atalho: SAC - Financeiro Adriano Casatti
 // @namespace    http://tampermonkey.net/
-// @version      1.5
+// @version      2.0
 // @description  Botões rápidos e seguros para SAC-Financeiro no Integrator 6
 // @match        *://integrator6.gegnet.com.br/*
 // @grant        none
@@ -12,22 +12,60 @@
 
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    const norm = s => (s || '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toUpperCase();
+
     async function selecionarPorTextoSpan(label) {
         await delay(200);
+        const alvoNorm = norm(label);
         const spans = Array.from(document.querySelectorAll('span.ng-star-inserted'))
             .filter(el => el.offsetParent !== null);
-        const alvo = spans.find(span => span.textContent.trim() === label);
+        const alvo = spans.find(span => norm(span.textContent) === alvoNorm);
         if (alvo) alvo.click();
     }
 
-    async function selecionarDropdown(formcontrolname, label) {
-        const dropdown = document.querySelector(`p-dropdown[formcontrolname="${formcontrolname}"] .ui-dropdown-trigger`);
-        if (!dropdown) return;
-        dropdown.click();
-        await delay(300);
-        const option = Array.from(document.querySelectorAll('li[role="option"], li.ui-dropdown-item'))
-            .find(opt => opt.textContent.trim() === label && opt.offsetParent !== null);
-        if (option) option.click();
+    async function selecionarDropdown(formcontrolname, label, { tentativas = 15, espera = 150 } = {}) {
+        const trigger = document.querySelector(
+            `p-dropdown[formcontrolname="${formcontrolname}"] .ui-dropdown-trigger, 
+             p-dropdown[formcontrolname="${formcontrolname}"] .p-dropdown-trigger`
+        );
+        if (!trigger) return false;
+
+        trigger.click();
+        await delay(espera);
+
+        const alvo = norm(label);
+
+        for (let i = 0; i < tentativas; i++) {
+            const panel =
+                document.querySelector('.ui-dropdown-panel[style*="visibility: visible"], .p-dropdown-panel[style*="visibility: visible"]') ||
+                document.querySelector('.ui-dropdown-panel:not([style*="display: none"]), .p-dropdown-panel:not([style*="display: none"])');
+
+            const items = panel ? Array.from(panel.querySelectorAll('li[role="option"], li.ui-dropdown-item, li.p-dropdown-item')) : [];
+
+            const opt = items.find(li => {
+                const t = norm(li.getAttribute('aria-label') || li.textContent);
+                return t === alvo || t.includes(alvo) || alvo.includes(t);
+            });
+
+            if (opt) {
+                opt.scrollIntoView({ block: 'center' });
+                await delay(60);
+                opt.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                opt.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                opt.click();
+                await delay(60);
+                document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                return true;
+            }
+
+            await delay(espera);
+        }
+
+        return false;
     }
 
     const acoesExtras = {
@@ -43,7 +81,9 @@
         },
         habilitacaoProvisoria: async () => {
             await selecionarPorTextoSpan("SAC - FINANCEIRO - BLOQUEIO POR INADIMPLÊNCIA");
-            await selecionarDropdown("codmvis", "SAC - Financeiro - Habilitação Provisória");
+            await delay(500);
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Habilitação Provisória", { tentativas: 20, espera: 150 });
+            await delay(200);
             await selecionarDropdown("codcatoco", "Administrativo");
         },
         centralDoAssinante: async () => {
@@ -101,16 +141,16 @@
         if (ok) criarBotao();
     }
 
-    // Observa mudanças e verifica quando abrir um novo atendimento
     const observer = new MutationObserver(() => {
         init();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Também roda quando muda a URL
     window.addEventListener('hashchange', () => {
         setTimeout(init, 800);
     });
 
 })();
+
+git commit -m "Atualiza função selecionarDropdown e corrige botão HABILITAÇÃO PROV."
