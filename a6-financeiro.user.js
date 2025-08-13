@@ -152,5 +152,3 @@
     });
 
 })();
-
-git commit -m "Atualiza função selecionarDropdown e corrige botão HABILITAÇÃO PROV."
