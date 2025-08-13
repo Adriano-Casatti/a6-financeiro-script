@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         SZ Chat - Copiar Cada Dado Individualmente
+// @name         SZ Chat - Copiar Cada Dado Individualmente - Adriano Casatti
 // @namespace    http://tampermonkey.net/
 // @version      2.0
 // @description  Adiciona ícones 📋 para copiar cada CPF, CNPJ, telefone e e-mail no SZ Chat, mesmo que estejam juntos na mesma mensagem.
