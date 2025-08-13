@@ -4,8 +4,8 @@
 // @version      2.0
 // @description  Adiciona ícones 📋 para copiar cada CPF, CNPJ, telefone e e-mail no SZ Chat, mesmo que estejam juntos na mesma mensagem.
 // @match        https://clusterscpr.sz.chat/user/agent*
-// updateURL    https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/szchat-copiar-dados.user.js
-// downloadURL  https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/szchat-copiar-dados.user.js
+// @updateURL    https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/szchat-copiar-dados.user.js
+// @downloadURL  https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/szchat-copiar-dados.user.js
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
