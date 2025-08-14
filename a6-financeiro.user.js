@@ -1,12 +1,10 @@
 // ==UserScript==
-// @name         A6 Atalho: SAC - Financeiro Adriano Casatti
+// @name         A6 Atalho: SAC - Financeiro - Adriano Casatti
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.3
 // @description  Botões rápidos e seguros para SAC-Financeiro no Integrator 6
 // @match        *://integrator6.gegnet.com.br/*
 // @grant        none
-// updateURL    https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/a6-financeiro.user.js
-// downloadURL  https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/a6-financeiro.user.js
 // ==/UserScript==
 
 (function () {
@@ -29,6 +27,7 @@
         if (alvo) alvo.click();
     }
 
+    // Busca exata, senão tenta parcial e escolhe o mais longo
     async function selecionarDropdown(formcontrolname, label, { tentativas = 15, espera = 150 } = {}) {
         const trigger = document.querySelector(
             `p-dropdown[formcontrolname="${formcontrolname}"] .ui-dropdown-trigger, 
@@ -40,6 +39,7 @@
         await delay(espera);
 
         const alvo = norm(label);
+        const getText = (li) => li?.getAttribute?.('aria-label') || li?.textContent || '';
 
         for (let i = 0; i < tentativas; i++) {
             const panel =
@@ -48,10 +48,20 @@
 
             const items = panel ? Array.from(panel.querySelectorAll('li[role="option"], li.ui-dropdown-item, li.p-dropdown-item')) : [];
 
-            const opt = items.find(li => {
-                const t = norm(li.getAttribute('aria-label') || li.textContent);
-                return t === alvo || t.includes(alvo) || alvo.includes(t);
-            });
+            // 1) Exato
+            let opt = items.find(li => norm(getText(li)) === alvo);
+
+            // 2) Parcial (maior texto primeiro)
+            if (!opt) {
+                const candidatos = items.filter(li => {
+                    const t = norm(getText(li));
+                    return t.includes(alvo) || alvo.includes(t);
+                });
+                if (candidatos.length) {
+                    candidatos.sort((a, b) => norm(getText(b)).length - norm(getText(a)).length);
+                    opt = candidatos[0];
+                }
+            }
 
             if (opt) {
                 opt.scrollIntoView({ block: 'center' });
@@ -92,6 +102,21 @@
             await selecionarPorTextoSpan("SAC - FINANCEIRO - CENTRAL DO ASSINANTE");
             await selecionarDropdown("codmvis", "SAC - Financeiro - Central do Assinante");
             await selecionarDropdown("codcatoco", "Administrativo");
+        },
+        boleto: async () => {
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - SEGUNDA VIA DO BOLETO");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Dúvidas ou Informações");
+            await selecionarDropdown("codcatoco", "Administrativo");
+        },
+        segundaViaNF: async () => {
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - SEGUNDA VIA NF");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Dúvidas ou Informações");
+            await selecionarDropdown("codcatoco", "Administrativo");
+        },
+        pix: async () => {
+            await selecionarPorTextoSpan("SAC - FINANCEIRO - PIX");
+            await selecionarDropdown("codmvis", "SAC - Financeiro - Solicitar chave PIX");
+            await selecionarDropdown("codcatoco", "Administrativo");
         }
     };
 
@@ -108,7 +133,10 @@
             { texto: 'PAGTO MENSALIDADE', acao: acoesExtras.pagamentoMensalidade },
             { texto: 'INF. BOLETO OU NF', acao: acoesExtras.informacoesBoleto },
             { texto: 'HABILITAÇÃO PROV.', acao: acoesExtras.habilitacaoProvisoria },
-            { texto: 'CENTRAL DO ASSINANTE', acao: acoesExtras.centralDoAssinante }
+            { texto: 'CENTRAL DO ASSINANTE', acao: acoesExtras.centralDoAssinante },
+            { texto: 'BOLETO', acao: acoesExtras.boleto },
+            { texto: 'SEGUNDA VIA NF', acao: acoesExtras.segundaViaNF },
+            { texto: 'PIX', acao: acoesExtras.pix }
         ];
 
         for (const { texto, acao } of botoes) {
@@ -154,3 +182,8 @@
     });
 
 })();
+
+git add a6-financeiro.user.js
+git commit -m "Adicionados botões BOLETO, SEGUNDA VIA NF e PIX"
+git push origin main
+
