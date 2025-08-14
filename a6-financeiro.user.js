@@ -185,7 +185,4 @@
 
 })();
 
-git add a6-financeiro.user.js
-git commit -m "Adicionados botões BOLETO, SEGUNDA VIA NF e PIX"
-git push origin main
 
