@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         A6 Atalho: SAC - Financeiro - Adriano Casatti
 // @namespace    http://tampermonkey.net/
-// @version      2.4
+// @version      2.6
 // @description  Botões rápidos e seguros para SAC-Financeiro no Integrator 6
 // @match        *://integrator6.gegnet.com.br/*
 // @updateURL    https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/a6-financeiro.user.js
@@ -9,7 +9,6 @@
 // @grant        none
 // ==/UserScript==
 
-//oii
 (function () {
     'use strict';
 
