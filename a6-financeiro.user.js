@@ -4,8 +4,8 @@
 // @version      2.6
 // @description  Botões rápidos e seguros para SAC-Financeiro no Integrator 6
 // @match        *://integrator6.gegnet.com.br/*
-// @updateURL    https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/a6-financeiro.user.js
-// @downloadURL  https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/a6-financeiro.user.js
+// @updateURL    https://github.com/Adriano-Casatti/a6-financeiro-script/raw/refs/heads/main/a6-financeiro.user.js
+// @downloadURL  https://github.com/Adriano-Casatti/a6-financeiro-script/raw/refs/heads/main/a6-financeiro.user.js
 // @grant        none
 // ==/UserScript==
 
