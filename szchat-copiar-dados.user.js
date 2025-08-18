@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         SZ Chat - Copiar Cada Dado Individualmente - Adriano Casatti
 // @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Adiciona ícones 📋 para copiar cada CPF, CNPJ, telefone e e-mail no SZ Chat, mesmo que estejam juntos na mesma mensagem.
+// @version      2.2
+// @description  Ícones discretos para copiar CPF, CNPJ, telefone e e-mail no SZ Chat, mesmo que estejam juntos na mesma mensagem.
 // @match        https://clusterscpr.sz.chat/user/agent*
 // @updateURL    https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/szchat-copiar-dados.user.js
 // @downloadURL  https://raw.githubusercontent.com/Adriano-Casatti/a6-financeiro-script/main/szchat-copiar-dados.user.js
@@ -17,18 +17,27 @@
 
     function criarIcone(textoParaCopiar) {
         const icon = document.createElement('span');
-        icon.textContent = '📋';
+        icon.textContent = '⧉';
         icon.style.marginLeft = '4px';
         icon.style.cursor = 'pointer';
-        icon.style.fontSize = '13px';
-        icon.title = 'Clique para copiar';
+        icon.style.fontSize = '12px';
+        icon.style.opacity = '0.5';
+        icon.style.transition = 'opacity 0.2s ease';
+        icon.title = 'Copiar';
+
+        icon.addEventListener('mouseover', () => icon.style.opacity = '0.8');
+        icon.addEventListener('mouseout', () => icon.style.opacity = '0.5');
 
         icon.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             navigator.clipboard.writeText(textoParaCopiar).then(() => {
                 icon.textContent = '✅';
-                setTimeout(() => { icon.textContent = '📋'; }, 1000);
+                icon.style.opacity = '0.8';
+                setTimeout(() => {
+                    icon.textContent = '⧉';
+                    icon.style.opacity = '0.5';
+                }, 1000);
             });
         });
 
@@ -43,23 +52,24 @@
         let ultimoIndex = 0;
 
         textoOriginal.replace(regexGeral, (match, ...args) => {
-            const index = args[args.length - 2]; // posição do match
-            // Texto antes do dado
+            const index = args[args.length - 2];
             fragment.appendChild(document.createTextNode(textoOriginal.slice(ultimoIndex, index)));
-            // O próprio dado
+
             const spanDado = document.createElement('span');
             spanDado.textContent = match;
-            spanDado.style.fontWeight = 'bold';
-            spanDado.style.color = '#00BFFF';
+            spanDado.style.fontWeight = '500';
+            spanDado.style.color = '#777'; 
+            spanDado.style.transition = 'color 0.2s ease';
+            spanDado.addEventListener('mouseover', () => spanDado.style.color = '#444');
+            spanDado.addEventListener('mouseout', () => spanDado.style.color = '#777');
+
             fragment.appendChild(spanDado);
-            // Ícone de copiar
             fragment.appendChild(criarIcone(match));
+
             ultimoIndex = index + match.length;
         });
 
-        // Texto depois do último dado
         fragment.appendChild(document.createTextNode(textoOriginal.slice(ultimoIndex)));
-
         el.replaceWith(fragment);
     }
 
